@@ -176,6 +176,27 @@ const Minimum=A=>{let L=A.length,M=A[--L];while(--L>=0){const N=A[L];N<M&&(M=N)}
     PearsonCorrelation relates to Variance and Covariance, such that r = COVAR(X,Y)/√(VAR(X)∙VAR(Y))
 */
 
+,BestFitLineLSM=(X,Y)=>{//Least Square Method Regression: inputs are arrays of x & y coordinates which must be of equal lengths
+    const n=X.length;let Σy=0,Σx=0,Σxy=0,Σx2=0    
+
+    for(let i=-1;++i<n;){
+        const x=X[i],y=Y[i]
+        Σx+=x;Σy+=y;Σxy+=x*y;Σx2+=x**2
+    }
+    const m=(n*Σxy-Σx*Σy)/(n*Σx2-Σx**2)
+
+    return[Number(m.toFixed(3)),Number(((Σy-m*Σx)/n).toFixed(3))]
+    // Outputs [m,c] (m = gradient slope & c = y-intercep, of y = m⋅x + c)
+}// e.g. BestFitLineLSM([1,2,3,4,5],[2,5,3,8,7]) ➜ [1.3,1.1] from https://www.cuemath.com/data/least-squares
+
+/* Note: several statistics functions can be calculated through two paths:
+    Calculating the mean average, or not. 
+    To calculate the mean average requires calculating the sum total. 
+    This requires an additional for or while loop which is more computationally expensive.
+    Hence, these methods are programmed here to skip this step and only use a single for/while loop.
+    These methods which are shown above include: Covariance, Variance, PearsonCorrelation & BestFitLineLSM
+*/
+
 ,LinearPolation=(x,x0,x1,y0,y1)=>{
     x>x0&&x>x1||x<x0&&x<x1?console.log('Extrapolation'):console.log('Interpolation')
     return Number((y0+(x-x0)*(y1-y0)/(x1-x0)).toFixed(3))// Outputs y
@@ -191,17 +212,6 @@ Other useful linear:
     x-intercep = -c/m , once both m and c are known
     e.g. -2/0.5 ➜ -4 
 */
-,BestFitLineLSM=(X,Y)=>{//Least Square Method: inputs are arrays of x & y coordinates which must be of equal lengths
-    let L=X.length,µ_Y=µ_X=N=D=0
-    if(L!=Y.length)return'Please enter arrays of x and y coordinates of equal lengths'
-
-    for(let i=L;--i>=0;µ_Y+=Y[i])µ_X+=X[i]
-    µ_Y/=L;µ_X/=L
-
-    while(--L>=0){const x=X[L]-µ_X;N+=x*(Y[L]-µ_Y);D+=x**2}
-    const m=Number((N/D).toFixed(3))
-    return[m,Number((µ_Y-m*µ_X).toFixed(3))]
-}// Outputs [m,c] (m = gradient slope & c = y-intercep, of y = m⋅x + c)
 
 /*--------------Geometry--------------*/
 ,TrapeziumRule=(x,Y)=>Number(((2*Sum(Y)-Y[0]-Y.at(-1))*x/2).toFixed(3)) // x = x-interval , Y = y-values Array
