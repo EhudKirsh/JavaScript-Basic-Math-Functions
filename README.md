@@ -1,7 +1,7 @@
 List of basic and complex math functions I programmed in their most efficient JavaScript forms:
 ```js
 'use strict'
-/*--------------Statistics--------------*/
+/*--------------Statistics & Graphing 📈--------------*/
 // Key: A = Array, i.e. [#,#,..]
 
 const Minimum=A=>{let L=A.length,M=A[--L];while(--L>=0){const N=A[L];N<M&&(M=N)};return M}
@@ -33,6 +33,11 @@ const Minimum=A=>{let L=A.length,M=A[--L];while(--L>=0){const N=A[L];N<M&&(M=N)}
 
 ,Unique=A=>[...new Set(A)] /* e.g. Unique([3,4,'4',5,4,12]) ➜ [3,4,'4',5,12]
     Alternatively: Unique=A=>Array.from(new Set(A)) OR Unique=A=>A.filter((e,i,s)=>s.indexOf(e)==i) */
+
+,FindIndices=(SearchedElement,A)=>{
+    const Indices=[],L=A.length;let i=-1;do{A[i]==SearchedElement&&Indices.push(i)}while(++i<L);return Indices
+} // e.g. FindIndices('h',[true,'h',6,'try',6,false,'h',0,-5.4,'h']) ➜ [1, 6, 9]
+
 ,CountOccurances=A=>{const C={};for(let L=A.length;--L>=0;){const E=A[L];C[E]?C[E]+=1:C[E]=1}return C}
 // e.g. CountOccurances([3,4,4,5,12]) ➜ {'3':1,'4':2,'5':1,'12':1}
 
@@ -79,81 +84,158 @@ const Minimum=A=>{let L=A.length,M=A[--L];while(--L>=0){const N=A[L];N<M&&(M=N)}
     Weight Product Model (WPM) in Multi-Criteria Analysis (MCA)
 */
 
-,AscendingSort=A=>A.sort((a,b)=>a<b?-1:1) /* Both Numbers and Strings Alphabetically Ascendingly
+,Probability=(p,n)=>{// p = percentage chance for sucess from 0% to 100% for 1 attempt , n = number of attempts
+    if(!isFinite(p)||p>100||p<0)return'p must be between 0 and 100!'
+    if(!Number.isInteger(n)||n<0)return'n must be a positive integer!'
+    return Number((100*(1-(1-p/100)**n)).toFixed(1))
+}
+/* e.g. 7 Coin Tosses: Probability(50,7) ➜ 99.2
+    2 Missles of Iron Dome Defence System: Probability(90,2) ➜ 99
+    Passing a driver's test in a tough area: Probability(100/3,5) ➜ 86.8
+    Passing a driver's test in an easy area: Probability(200/3,3) ➜ 96.3
+    Getting a job where 1 out of 5 applicants is employed: Probability(20,7) ➜ 86.6
+*/
+
+,AscendingSort=A=>A.sort((a,b)=>a<b?-1:1) 
+/* Sorts both Numbers and Strings Alphabetically Ascendingly
     e.g. AscendingSort([-7.6,0,0.5,1,4.3,true,false,NaN,'str',' ',[],{},Infinity,-Infinity]) =>
-        [-Infinity,-7.6,0,false,[],' ',0.5,1,true,4.3,NaN,{},'str',Infinity] */
-,SortNumbers=A=>A.sort((a,b)=>a-b) /* Only numbers, but slightly more efficent. From smallest to biggest
-    e.g. SortNumbers([0,-1.4,7.6]) ➜ [-1.4,0,7.6] */
+        [-Infinity,-7.6,0,false,[],' ',0.5,1,true,4.3,NaN,{},'str',Infinity] 
+*/
+,SortNumbers=A=>A.sort((a,b)=>a-b) 
+/* Sorts only numbers, but slightly more efficent. From smallest to biggest
+    e.g. SortNumbers([0,-1.4,7.6]) ➜ [-1.4,0,7.6]
+*/
 
 ,Rank=A=>{const S=A.slice().sort((a,b)=>a>b?-1:1);return A.map(v=>S.indexOf(v)+1)}
-// rank values with biggest being #1 , e.g. Rank([0,-1.4,7.6]) ➜ [2,3,1] , Rank(['a','c','b']) ➜ [3,1,2]
+// rank values with biggest being #1 , e.g. Rank([5,62,5,0,4,-3.4,5,62]) ➜ [3,1,3,7,6,8,3,1] , Rank(['a','c','b']) ➜ [3,1,2]
 
-,FractionRank=A=>{// Adds 0.5*(occurrences-1) per each tied rank
+,FractionRank=A=>{// Adds (#occurrences-1)/2 per each tied rank
     const R=Rank(A),L=R.length,C=new Map()
     for(let i=-1;++i<L;){const r=R[i];C.has(r)||C.set(r,0);C.set(r,C.get(r)+1)}
     for(let i=-1;++i<L;)R[i]+=(C.get(R[i])-1)/2
     return R
-}//e.g. FractionRank([5,62,5,0,4,-3.4,5,62]) ➜ [4, 1.5, 4, 7, 6, 8, 4, 1.5]
+}// e.g. FractionRank([5,62,5,0,4,-3.4,5,62]) ➜ [4,1.5,4,7,6,8,4,1.5]
 
 ,SpearmanCorrelation=(A1,A2)=>{// Coefficient 'ρ': 1 ≥ ρ ≥ -1
     const n=A1.length,Rank1=FractionRank(A1),Rank2=FractionRank(A2);let Σd2=0
-    for(let L=n;--L>=0;)Σd2+=(Rank1[L]-Rank2[L])**2
-    return Number((1-(6*Σd2/(n*(n**2-1)))).toFixed(3)) // ρ = 1 - 6Σd²/n(n²-1)
-}// e.g. SpearmanCorrelation([1,6,4,3,4],[9,5,9,7,2]) ➜ -0.475
+    for(let L=n;--L>=0;)Σd2+=(Rank1[L]-Rank2[L])**2 // d = difference in ranks
+    return (1-(6*Σd2/(n*(n**2-1)))).toFixed(2) // ρ = 1 - 6Σd²/n(n²-1)
+}// e.g. SpearmanCorrelation([1,6,4,3,4],[9,5,9,7,2]) ➜ -0.48
 
-,PearsonCorrelation=(A1,A2)=>{// Coefficient 'r': 1 ≥ r ≥ -1
-    const n=A1.length
+,PearsonCorrelation=(X,Y)=>{// Coefficient 'r': 1 ≥ r ≥ -1
+    const n=X.length
     if(n<2)return -Infinity // to prevent error in the console when used in some apps that may not accept NaN
-    let i=n,S1=A1[--i],S2=A2[i],SP11=S1**2,SP22=S2**2,SP12=S1*S2 // 'S' is Sum and 'SP' is SumProduct
-    while(--i>=0){
-        const a1=A1[i],a2=A2[i]
-        S1+=a1;S2+=a2;SP11+=a1**2;SP22+=a2**2;SP12+=a1*a2
+    let Σx=0,Σy=0,Σx2=0,Σy2=0,Σxy=0
+    for(let i=-1;++i<n;){
+        const x=X[i],y=Y[i]
+        Σx+=x;Σy+=y;Σx2+=x**2;Σy2+=y**2;Σxy+=x*y
     }
-    return(n*SP12-S1*S2)/Math.sqrt((n*SP11-S1**2)*(n*SP22-S2**2))
-    // r = (n∙Σ(x∙y)-Σ(x)∙Σ(y))/√((n∙Σ(x²)-(Σx)²)∙(n∙Σ(y²)-(Σy)²))
-}// e.g. PearsonCorrelation([1,6,3,4],[9,5,7,2]) ➜ -0.520
+    return ((n*Σxy-Σx*Σy)/Math.sqrt((n*Σx2-Σx**2)*(n*Σy2-Σy**2))).toFixed(2)
+}/* e.g. PearsonCorrelation([1,6,4,3,4],[9,5,9,7,2]) ➜ -0.52
+
+    PearsonCorrelation([3.63,3.02,3.82,3.42,3.59,2.87,3.03,3.46,3.36,3.30],[53.1,49.7,48.4,54.2,54.9,43.7,47.2,45.2,54.4,50.4]) ➜ 0.47
+*/
 
 //Population Covariance, Variance σ² & Standard Deviation σ
-,COVAR_P=(A1,A2)=>{
-    const L=A1.length;let i=L,µ1=A1[--i],µ2=A2[i]
-    while(--i>=0){µ1+=A1[i];µ2+=A2[i]}µ1/=L;µ2/=L
-    i=L;let C=(A1[--i]-µ1)*(A2[i]-µ2)
-    while(--i>=0)C+=(A1[i]-µ1)*(A2[i]-µ2)
-    return Number((C/L).toFixed(3))
-}
-,VAR_P=A=>{
-    const L=A.length
-    let i=L,µ=A[--i];while(--i>=0)µ+=A[i];µ/=L
-    i=L;let V=(A[--i]-µ)**2;while(--i>=0)V+=(A[i]-µ)**2
-    return Number((V/L).toFixed(3))
+
+,COVAR_P=(X,Y)=>{
+    const n=X.length;let Σx=0,Σy=0,Σxy=0
+    for(let i=-1;++i<n;){const x=X[i],y=Y[i];Σx+=x;Σy+=y;Σxy+=x*y}
+    return Number(((Σxy-Σx*Σy/n)/n).toFixed(3))
+}// e.g. COVAR_P([2,5,6,8,9],[4,3,7,5,6]) ➜ 1.8 , source: https://www.cuemath.com/covariance-formula
+
+,VAR_P=X=>{
+    const n=X.length;let Σx=0,Σx2=0
+    for(let i=-1;++i<n;){const x=X[i];Σx+=x;Σx2+=x**2}
+    return Number(((Σx2-Σx**2/n)/n).toFixed(3))
 }/* e.g. VAR_P([85,92,64,99,56]) ➜ 271.76
     source: https://study.com/skill/learn/calculating-population-standard-deviation-explanation.html */
-,STDEV_P=A=>Number(Math.sqrt(VAR_P(A)).toFixed(3))// e.g. STDEV_P([85,92,64,99,56]) ➜ 16.485
+,STDEV_P=X=>Number(Math.sqrt(VAR_P(X)).toFixed(3))// e.g. STDEV_P([85,92,64,99,56]) ➜ 16.485
 
 //Sample Covariance, Variance S² & Standard Deviation S
-,COVAR_S=(A1,A2)=>{
-    const L=A1.length;let i=L,µ1=A1[--i],µ2=A2[i]
-    while(--i>=0){µ1+=A1[i];µ2+=A2[i]}µ1/=L;µ2/=L
-    i=L;let C=(A1[--i]-µ1)*(A2[i]-µ2)
-    while(--i>=0)C+=(A1[i]-µ1)*(A2[i]-µ2)
-    return Number((C/(L-1)).toFixed(3))
-}
-,VAR_S=A=>{
-    const L=A.length
-    let i=L,µ=A[--i];while(--i>=0)µ+=A[i];µ/=L
-    i=L;let V=(A[--i]-µ)**2;while(--i>=0)V+=(A[i]-µ)**2
-    return Number((V/(L-1)).toFixed(3))
+,COVAR_S=(X,Y)=>{
+    const n=X.length;let Σx=0,Σy=0,Σxy=0
+    for(let i=-1;++i<n;){const x=X[i],y=Y[i];Σx+=x;Σy+=y;Σxy+=x*y}
+    return Number(((Σxy-Σx*Σy/n)/(n-1)).toFixed(3))
+}// e.g. COVAR_S([2,5,6,8,9],[4,3,7,5,6]) ➜ 2.25 , source: https://www.cuemath.com/covariance-formula
+
+,VAR_S=X=>{
+    const n=X.length;let Σx=0,Σx2=0
+    for(let i=-1;++i<n;){const x=X[i];Σx+=x;Σx2+=x**2}
+    return Number(((Σx2-Σx**2/n)/(n-1)).toFixed(3))
 }// e.g. VAR_S([9,2,5,4,12,7]) ➜ 13.1 , source: https://www.ztable.net/sample-population-standard-deviation
-,STDEV_S=A=>Number(Math.sqrt(VAR_S(A)).toFixed(3))// e.g. STDEV_S([9,2,5,4,12,7]) ➜ 3.619
+,STDEV_S=X=>Number(Math.sqrt(VAR_S(X)).toFixed(3))// e.g. STDEV_S([9,2,5,4,12,7]) ➜ 3.619
 
-/* Use Sample S equations of you only analyse a subset of a larger population, and Population σ equations if you analyse the entire population.
-Variance returns the same result as entiring the same array as the 2 inputs for Covariance */
+/* Note:
+    Use Sample S equations when you only analyse a subset of a larger population.
+    Use Population σ equations when you analyse an entire population.
 
-,FindIndices=(SearchedElement,A)=>{
-    const Indices=[],L=A.length;let i=-1;do{A[i]==SearchedElement&&Indices.push(i)}while(++i<L);return Indices
-} // e.g. FindIndices('h',[true,'h',6,'try',6,false,'h',0,-5.4,'h']) ➜ [1, 6, 9]
+    Variance returns the same result as entering the same array as the 2 inputs for Covariance,
+    i.e. VAR(X) = COVAR(X,X). Covariance is essentially a more generalised Variance.
+
+    PearsonCorrelation relates to Variance and Covariance, such that r = COVAR(X,Y)/√(VAR(X)∙VAR(Y))
+*/
+
+,LinearPolation=(x,x0,x1,y0,y1)=>{
+    x>x0&&x>x1||x<x0&&x<x1?console.log('Extrapolation'):console.log('Interpolation')
+    return Number((y0+(x-x0)*(y1-y0)/(x1-x0)).toFixed(3))// Outputs y
+}// e.g. LinearPolation(5,1,8,3,8) ➜ Interpolation,5.857 , LinearPolation(-5,1,8,-3,8) ➜ Extrapolation,-12.429
+
+,BestFitLine2Points=(x1,x2,y1,y2)=>{// Outputs [m,c] (m = gradient slope & c = y-intercep, of y = m⋅x + c)
+    const m=Number(((y2-y1)/(x2-x1)).toFixed(3))
+    return[m,Number((y1-m*x1).toFixed(3))] // alternatively (y2-m*x2)
+}/* e.g. BestFitLine2Points(2,6,3,5) ➜ [0.5,2] , i.e. y = x/2 + 2
+Other useful linear:
+    m = (y - c) / x , for a specific single (x,y) coordinate with known c
+    c = y - m⋅x , for a specific single (x,y) coordinate with known gradient
+    x-intercep = -c/m , once both m and c are known
+    e.g. -2/0.5 ➜ -4 
+*/
+,BestFitLineLSM=(X,Y)=>{//Least Square Method: inputs are arrays of x & y coordinates which must be of equal lengths
+    let L=X.length,µ_Y=µ_X=N=D=0
+    if(L!=Y.length)return'Please enter arrays of x and y coordinates of equal lengths'
+
+    for(let i=L;--i>=0;µ_Y+=Y[i])µ_X+=X[i]
+    µ_Y/=L;µ_X/=L
+
+    while(--L>=0){const x=X[L]-µ_X;N+=x*(Y[L]-µ_Y);D+=x**2}
+    const m=Number((N/D).toFixed(3))
+    return[m,Number((µ_Y-m*µ_X).toFixed(3))]
+}// Outputs [m,c] (m = gradient slope & c = y-intercep, of y = m⋅x + c)
+
+/*--------------Geometry--------------*/
+,TrapeziumRule=(x,Y)=>Number(((2*Sum(Y)-Y[0]-Y.at(-1))*x/2).toFixed(3)) // x = x-interval , Y = y-values Array
+/* e.g. TrapeziumRule(0.25,[1,1.22,1.41,1.58,1.73]) ➜ 1.394
+    source: https://revisionmaths.com/advanced-level-maths-revision/pure-maths/calculus/trapezium-rule
+
+    TrapeziumRule(0.5,[1.41,1.58,2.34,2.69,3.16]) ➜ 4.447
+    source: https://www.vivaxsolutions.com/maths/altrapzrule.aspx
+*/
+
+,PolygonArea=(X,Y)=>{// Calculates the area of a polygon shape formed by coordinates on a graph using the Shoelace method
+    let A=0;const L=X.length
+    if(L<3)return'Must include at least 3 coordinates!'
+    if(Y.length!==L)return'X and Y arrays must have equal lengths!'
+    for(let i=-1;++i<L;){const j=(i+1)%L;A+=X[i]*Y[j]-Y[i]*X[j]} // % "wraps"
+    return Number((Math.abs(A)/2).toFixed(3))
+}
+/*e.g. PolygonArea([0,8,0],[0,0,7]) ➜ 28 (8*7/2, triangle) , PolygonArea([5,3,1,3,4,5],[4,5,3,1,2,4]) ➜ 8.5
+    PolygonArea([2,4,4,2],[1,1,3,3]) ➜ 4 (Not 6! This is a wrapped example!)
+*/
+,PolygonCOM=(C,M)=>{// Calculates the Center of Mass (COM) of an array of masses M along a dimension with coordinates C
+    if(M===undefined)return MeanAverage(C) // Assume all masses are equal
+    let l=C.length,Σm=0,Σcm=0
+    if(M.length!==l)return'C and M arrays must have equal lengths!'
+    while(--l>=0){const m=M[l];Σm+=m;Σcm+=m*C[l]}
+    return Number((Σcm/Σm).toFixed(3))
+}
+// e.g. PolygonCOM([1,3,4],[22,5,15]) ➜ 2.31 , PolygonCOM([1,3,4]) ➜ 2.667
+
+//To Do: perimeter/circumfrence, area & volume of shapes
 
 /*--------------Multi-Criteria Analysis (MCA)--------------*/
+
+,TriangularNumbers=n=>n*(n-1)/2 //Number of unique pairwise comparisons between n criteria in a correlation matrix or AHP method in MCA
 
 ,NormaliseWeights=Weights=>{
     // This function inputs an array of numbers and divides each by their total, so the returned array will have a sum of 1.00
@@ -305,36 +387,6 @@ Only Square (#Rows=#Cols) Matrices with non-zero determinant have an inverse mat
 An inverse of a matrix is defined as: M ⋅ M⁻¹ =  M⁻¹ ⋅ M = I , where I is an identity matrix of the same length.
 Consequently, and as an aside, the inverse of the inverse matrix is equal to the original matrix: (M⁻¹)⁻¹ = M
 */
-
-/*--------------Graphing 📈--------------*/
-,TrapeziumRule=(x,Y)=>Number(((2*Sum(Y)-Y[0]-Y.at(-1))*x/2).toFixed(3)) // x = x-interval , Y = y-values Array
-
-,LinearPolation=(x,x0,x1,y0,y1)=>{
-    x>x0&&x>x1||x<x0&&x<x1?console.log('Extrapolation'):console.log('Interpolation')
-    return Number((y0+(x-x0)*(y1-y0)/(x1-x0)).toFixed(3))// Outputs y
-}// e.g. LinearPolation(5,1,8,3,8) ➜ Interpolation,5.857 , LinearPolation(-5,1,8,-3,8) ➜ Extrapolation,-12.429
-
-,BestFitLine2Points=(x1,x2,y1,y2)=>{// Outputs [m,c] (m = gradient slope & c = y-intercep, of y = m⋅x + c)
-    const m=Number(((y2-y1)/(x2-x1)).toFixed(3))
-    return[m,Number((y1-m*x1).toFixed(3))] // alternatively (y2-m*x2)
-}/* e.g. BestFitLine2Points(2,6,3,5) ➜ [0.5,2] , i.e. y = x/2 + 2
-Other useful linear:
-    m = (y - c) / x , for a specific single (x,y) coordinate with known c
-    c = y - m⋅x , for a specific single (x,y) coordinate with known gradient
-    x-intercep = -c/m , once both m and c are known
-    e.g. -2/0.5 ➜ -4 
-*/
-,BestFitLineLSM=(X,Y)=>{//Least Square Method: inputs are arrays of x & y coordinates which must be of equal lengths
-    let L=X.length,µ_Y=µ_X=N=D=0
-    if(L!=Y.length)return'Please enter arrays of x and y coordinates of equal lengths'
-
-    for(let i=L;--i>=0;µ_Y+=Y[i])µ_X+=X[i]
-    µ_Y/=L;µ_X/=L
-
-    while(--L>=0){const x=X[L]-µ_X;N+=x*(Y[L]-µ_Y);D+=x**2}
-    const m=Number((N/D).toFixed(3))
-    return[m,Number((µ_Y-m*µ_X).toFixed(3))]
-}// Outputs [m,c] (m = gradient slope & c = y-intercep, of y = m⋅x + c)
 
 /*--------------Iterative Greatest Common Divisor & Least Common Multiple--------------*/
 /*
